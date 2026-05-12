@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-CANONICAL_REPO="/Users/aurora/hermes-workspace"
-FORBIDDEN_REPO="/Users/aurora/hermes-workspace"
+CANONICAL_REPO="${HERMES_WORKSPACE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)}"
+FORBIDDEN_REPO="${HERMES_FORBIDDEN_REPO:-}"
 
 CURRENT_DIR="$(pwd -P)"
 
-if [[ "$CURRENT_DIR" == "$FORBIDDEN_REPO" ]] || [[ "$CURRENT_DIR" == "$FORBIDDEN_REPO"/* ]]; then
+if [[ -n "$FORBIDDEN_REPO" ]] && { [[ "$CURRENT_DIR" == "$FORBIDDEN_REPO" ]] || [[ "$CURRENT_DIR" == "$FORBIDDEN_REPO"/* ]]; }; then
   echo "ERROR: wrong repo: $CURRENT_DIR"
   echo "Use: $CANONICAL_REPO"
   exit 1
@@ -23,10 +23,11 @@ if [[ ! -f "$CANONICAL_REPO/package.json" ]]; then
   exit 1
 fi
 
-REPO_NAME="$(python3 - <<'PY'
+REPO_NAME="$(CANONICAL_REPO="$CANONICAL_REPO" python3 - <<'PY'
 import json
+import os
 from pathlib import Path
-pkg = json.loads(Path('/Users/aurora/hermes-workspace/package.json').read_text())
+pkg = json.loads((Path(os.environ['CANONICAL_REPO']) / 'package.json').read_text())
 print(pkg.get('name', ''))
 PY
 )"

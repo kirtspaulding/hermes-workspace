@@ -157,6 +157,8 @@ The Inbox is where the swarm asks for judgment instead of trying to be brave in 
 
 Switch to Kanban view for planning. The board is useful when you want a visual queue but still want dispatch to happen through the orchestrator.
 
+Storage note: the TaskBoard defaults to SQLite. Provider-backed boards should be treated as explicit canaries: back up SQLite, test a disposable board first, then promote one recurring board at a time.
+
 Recommended lane meanings:
 
 | Lane | Meaning |

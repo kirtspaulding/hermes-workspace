@@ -2,11 +2,17 @@ import { createFileRoute } from '@tanstack/react-router'
 import { json } from '@tanstack/react-start'
 import { z } from 'zod'
 import { createKanbanCard, getKanbanBackendMeta, listKanbanCards, updateKanbanCard } from '../../server/kanban-backend'
+import { isAuthenticated } from '../../server/auth-middleware'
 
 const CreateCardSchema = z.object({
   title: z.string().trim().min(1).max(200),
   spec: z.string().trim().max(5000).optional().default(''),
-  acceptanceCriteria: z.string().trim().max(5000).optional().default(''),
+  acceptanceCriteria: z.preprocess(
+    (value) => typeof value === 'string'
+      ? value.split('\n').map((line) => line.trim()).filter(Boolean)
+      : value,
+    z.array(z.string().trim().min(1).max(1000)).max(50),
+  ).optional().default([]),
   assignedWorker: z.string().trim().max(120).optional().nullable(),
   reviewer: z.string().trim().max(120).optional().nullable(),
   status: z.enum(['backlog', 'ready', 'running', 'review', 'blocked', 'done']).optional().default('backlog'),
@@ -22,7 +28,10 @@ const UpdateCardSchema = CreateCardSchema.partial().extend({
 export const Route = createFileRoute('/api/swarm-kanban')({
   server: {
     handlers: {
-      GET: async () => {
+      GET: async ({ request }) => {
+        if (!isAuthenticated(request)) {
+          return json({ ok: false, error: 'Unauthorized' }, { status: 401 })
+        }
         return json({
           ok: true,
           cards: await listKanbanCards(),
@@ -30,6 +39,9 @@ export const Route = createFileRoute('/api/swarm-kanban')({
         })
       },
       POST: async ({ request }) => {
+        if (!isAuthenticated(request)) {
+          return json({ ok: false, error: 'Unauthorized' }, { status: 401 })
+        }
         let body: unknown
         try {
           body = await request.json()
@@ -44,6 +56,9 @@ export const Route = createFileRoute('/api/swarm-kanban')({
         return json({ ok: true, card, backend: getKanbanBackendMeta() })
       },
       PATCH: async ({ request }) => {
+        if (!isAuthenticated(request)) {
+          return json({ ok: false, error: 'Unauthorized' }, { status: 401 })
+        }
         let body: unknown
         try {
           body = await request.json()

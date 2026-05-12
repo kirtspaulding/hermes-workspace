@@ -35,6 +35,7 @@ Start here: [docs/swarm/](./docs/swarm/)
 - **Orchestrator Chat** — ask the control plane for one task, a decomposed mission, or a full broadcast.
 - **Multi-Agent Control Plane** — see persistent Hermes Agents, roles, state, runtime, and routing wires in one surface.
 - **Kanban TaskBoard** — plan backlog, ready, running, review, blocked, and done lanes without leaving the workspace.
+  The server-side Kanban layer uses a store/provider contract so SQLite remains the default while future backends can be tested behind a conformance suite.
 - **Reports + Inbox** — review checkpoints, blockers, handoffs, and ready-for-human decisions.
 - **TUI View built in** — attach to tmux-backed workers or fall back to a live shell/log stream.
 
@@ -76,6 +77,14 @@ Start here: [docs/swarm/](./docs/swarm/)
 |                  Tasks                  |                 Jobs                 |
 | :--------------------------------------: | :----------------------------------: |
 | ![Tasks](./docs/screenshots/tasks.png) | ![Jobs](./docs/screenshots/jobs.png) |
+
+---
+
+## Kanban store contract
+
+The TaskBoard backend is split behind a small store/provider contract. The default provider is SQLite and should stay the compatibility oracle for local installs. New providers must satisfy the shared conformance suite before they are exposed to the UI.
+
+For operator rollouts, keep provider changes server-scoped and reversible: back up the existing SQLite data, test against a disposable board, then canary one recurring board before considering broader use. The UI should treat provider-backed task data as a board source, not as an instruction to globally migrate every board.
 
 ---
 
